@@ -72,10 +72,19 @@ contract RWADao is Ownable {
 
     function unlockNFT() external {
         uint256 totalSupply = TOKEN_CONTRACT.totalSupply();
+        
+        // Check if sender has all tokens
+        require(TOKEN_CONTRACT.balanceOf(msg.sender) == totalSupply, "Must own all tokens");
+        
+        // Transfer tokens to contract
         require(TOKEN_CONTRACT.transferFrom(msg.sender, address(this), totalSupply), "Transfer failed");
         
-        // TOKEN_CONTRACT.burn(totalSupply);
-        NFT_CONTRACT.transferFrom(address(this), msg.sender, 0);
+        // Get NFT from current owner (should be initial owner/DAO creator)
+        address nftOwner = NFT_CONTRACT.ownerOf(0);
+        NFT_CONTRACT.transferFrom(nftOwner, msg.sender, 0);
+        
+        // Burn all tokens - first need to add burn function to RWAToken
+        TOKEN_CONTRACT.burn(totalSupply);
         
         emit NFTUnlocked(msg.sender);
     }
@@ -177,7 +186,6 @@ contract RWADao is Ownable {
         }
     }
 
-    // Existing functions remain unchanged below
     function approveTokensForSale(uint256 amount) external {
         require(amount > 0, "Amount must be greater than 0");
         require(TOKEN_CONTRACT.balanceOf(msg.sender) >= amount, "Insufficient balance");
