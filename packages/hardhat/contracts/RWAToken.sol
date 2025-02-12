@@ -120,4 +120,8 @@ contract RWAToken is ERC20, Ownable {
             delete holderIndices[holder];
         }
     }
+
+    function burn(uint256 amount) public {
+        _burn(msg.sender, amount);
+    }
 }
